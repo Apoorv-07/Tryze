@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tryze - AR Product Visualization</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- A-Frame and AR.js Libraries -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.4.5/aframe/build/aframe-ar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
+</head>
+<body>
+    <!-- Main Container -->
+    <div id="app">
+        <!-- AR Scene -->
+        <a-scene
+            id="arScene"
+            embedded
+            arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+            renderer="precision: medium; antialias: true; alpha: true; logarithmicDepthBuffer: true;"
+            vr-mode-ui="enabled: false"
+            loading-screen="enabled: false">
+            
+            <!-- Assets -->
+            <a-assets>
+                <!-- Sample 3D Models (You can add your own GLTF models here) -->
+                <a-asset-item id="chair-model" src="assets/chair.gltf"></a-asset-item>
+                <a-asset-item id="table-model" src="assets/table.gltf"></a-asset-item>
+                <a-asset-item id="lamp-model" src="assets/lamp.gltf"></a-asset-item>
+            </a-assets>
+            
+            <!-- AR Marker -->
+            <a-marker id="markerA" preset="hiro" cursor="fuse: false; rayOrigin: mouse;">
+                <!-- Default Product Entity -->
+                <a-entity id="product-entity">
+                    <!-- Default 3D Object (Cube) -->
+                    <a-box
+                        position="0 0.5 0"
+                        scale="0.5 0.5 0.5"
+                        color="#00d4ff"
+                        metalness="0.7"
+                        roughness="0.3"
+                        shadow="cast: true; receive: true"
+                        animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+                    </a-box>
+                    
+                    <!-- Text Label -->
+                    <a-text
+                        value="Tryze Product"
+                        position="0 1.2 0"
+                        align="center"
+                        color="#ffffff"
+                        scale="0.8 0.8 0.8"
+                        look-at="[camera]">
+                    </a-text>
+                </a-entity>
+            </a-marker>
+            
+            <!-- Lighting -->
+            <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
+            <a-light type="directional" position="2 4 2" color="#ffffff" intensity="0.8" shadow="cast: true;"></a-light>
+            <a-light type="point" position="-2 2 2" color="#00d4ff" intensity="0.3"></a-light>
+            
+            <!-- Camera -->
+            <a-entity camera look-controls wasd-controls="enabled: false;"></a-entity>
+        </a-scene>
+        
+        <!-- UI Overlay -->
+        <div id="uiOverlay" class="ui-overlay">
+            <!-- Menu Component -->
+            <div id="menu" class="menu-container" aria-expanded="false">
+                <div class="menu-header">
+                    <h2>Tryze AR</h2>
+                    <button id="menuToggle" class="menu-toggle" aria-label="Toggle Menu">☰</button>
+                </div>
+                <div id="menuContent" class="menu-content collapsed">
+                    <div class="menu-section">
+                        <h3>Products</h3>
+                        <div class="product-list" id="productList">
+                            <!-- Dynamic product items will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="menu-section">
+                        <h3>Controls</h3>
+                        <div class="control-buttons">
+                            <button id="resetBtn" class="control-btn">Reset View</button>
+                            <button id="captureBtn" class="control-btn">Capture</button>
+                            <button id="switchCameraBtn" class="control-btn">Switch Camera</button>
+                            <button id="helpBtn" class="control-btn">Help</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Product Overlay -->
+            <div id="productOverlay" class="product-overlay hidden">
+                <div class="overlay-content">
+                    <button id="closeOverlay" class="close-btn" aria-label="Close">×</button>
+                    <div class="product-image-container">
+                        <!-- Product image will be inserted here -->
+                    </div>
+                    <div id="productInfo" class="product-info">
+                        <h3 id="productTitle">Product Name</h3>
+                        <p id="productDescription">Product description will appear here</p>
+                        <div class="product-extra-details">
+                            <!-- Additional details will be inserted here -->
+                        </div>
+                        <div class="product-details">
+                            <span id="productPrice" class="price">$0.00</span>
+                            <div class="product-actions">
+                                <button id="addToCartBtn" class="action-btn primary">Add to Cart</button>
+                                <button id="shareBtn" class="action-btn secondary">Share</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="loading-screen">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>Loading AR Experience...</p>
+                <div class="loading-progress">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Messages -->
+        <div id="statusMessage" class="status-message hidden">
+            <p id="statusText">Point your camera at the Hiro marker to start AR</p>
+        </div>
+        
+        <!-- Help Modal -->
+        <div id="helpModal" class="help-modal hidden">
+            <div class="modal-content">
+                <button id="closeHelp" class="close-btn">×</button>
+                <h3>How to Use Tryze AR</h3>
+                <div class="help-content">
+                    <div class="help-step">
+                        <div class="step-number">1</div>
+                        <div class="step-text">
+                            <h4>Print the AR Marker</h4>
+                            <p>Download and print the Hiro marker from <a href="https://github.com/jeromeetienne/AR.js/blob/master/data/images/HIRO.jpg" target="_blank">here</a></p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">2</div>
+                        <div class="step-text">
+                            <h4>Allow Camera Access</h4>
+                            <p>Grant camera permissions when prompted by your browser</p>
+                        </div>
+                    </div>
+                    <div class="help-step">
+                        <div class="step-number">3</div>
+                        <div class="step-text">
+                            <h4>Point at Marker</h4>
+                            <p>Point your camera at the printed marker to see the 3D product</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="../src/three-setup.js"></script>
+    <script src="../src/ar.js"></script>
+    <script src="../src/ui/menu.js"></script>
+    <script src="../src/ui/productOverlay.js"></script>
+    <script src="../src/app.js"></script>
+</body>
+</html>
